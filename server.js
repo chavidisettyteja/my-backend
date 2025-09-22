@@ -8,7 +8,6 @@ const path = require("path");
 const Project = require("./models/Project"); // Make sure you have this
 const Plot = require("./models/Plots");
 const Resell = require("./models/Resell");
-const { default: Resell } = require("../front/src/components/Resell");
 
 const app = express();
 
