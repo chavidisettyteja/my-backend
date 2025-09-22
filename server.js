@@ -21,7 +21,7 @@ const app = express();
 // Middleware
 app.use(express.json());
 app.use(cors({
-  origin: "https://your-frontend.netlify.app", // Netlify frontend URL
+  origin: "https://plotsandproperties.netlify.app", // Netlify frontend URL
   methods: ["GET", "POST", "PUT", "DELETE"],
 }));
 
