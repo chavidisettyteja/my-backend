@@ -169,12 +169,14 @@ app.get("/admin/plots/:type", async (req, res) => {
 
 /* ==================== RESELL ROUTES ===================== */
 
+/* ==================== RESELL ROUTES ===================== */
+
 // POST: Add a Resell
 app.post(
   "/admin/resell",
   upload.fields([{ name: "image", maxCount: 1 }]),
   async (req, res) => {
-    console.log("✅ POST /admin/plot hit");
+    console.log("✅ POST /admin/resell hit");
     console.log("Body:", req.body);
     console.log("Files:", req.files);
 
@@ -190,7 +192,7 @@ app.post(
         imageUrl: image ? `/uploads/${image.filename}` : null,
       });
 
-      await newPlot.save();
+      await newResell.save();
       res.status(201).json({ message: "Resell saved", resell: newResell });
     } catch (err) {
       console.error(err);
@@ -198,7 +200,6 @@ app.post(
     }
   }
 );
-
 
 // GET: All Resell
 app.get("/admin/resell", async (req, res) => {
@@ -211,7 +212,7 @@ app.get("/admin/resell", async (req, res) => {
   }
 });
 
-// GET: Filtered Projects by Type (e.g., Commercial)
+// GET: Filtered Resell by Type
 app.get("/admin/resell/:type", async (req, res) => {
   try {
     const { type } = req.params;
