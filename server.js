@@ -7,11 +7,25 @@ const path = require("path");
 
 const Project = require("./models/Project"); // Make sure you have this
 const Plot = require("./models/Plots");
+const Resell = require("./models/Resell");
+const { default: Resell } = require("../front/src/components/Resell");
 
 const app = express();
 
 // Middleware
-app.use(cors());
+// app.use(cors());----OLD
+// import cors from "cors";
+// app.use(cors({
+//   origin: "https://your-netlify-site.netlify.app"
+// }));
+
+// Middleware
+app.use(express.json());
+app.use(cors({
+  origin: "https://your-frontend.netlify.app", // Netlify frontend URL
+  methods: ["GET", "POST", "PUT", "DELETE"],
+}));
+
 app.use(express.json());
 app.use("/uploads", express.static("uploads")); // Serve uploaded files
 
@@ -150,6 +164,62 @@ app.get("/admin/plots/:type", async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Failed to fetch projects by type" });
+  }
+});
+
+/* ==================== RESELL ROUTES ===================== */
+
+// POST: Add a Resell
+app.post(
+  "/admin/resell",
+  upload.fields([{ name: "image", maxCount: 1 }]),
+  async (req, res) => {
+    console.log("✅ POST /admin/plot hit");
+    console.log("Body:", req.body);
+    console.log("Files:", req.files);
+
+    try {
+      const { area, type, price, location } = req.body;
+      const image = req.files?.image?.[0];
+
+      const newResell = new Resell({
+        area,
+        type,
+        price,
+        location,
+        imageUrl: image ? `/uploads/${image.filename}` : null,
+      });
+
+      await newPlot.save();
+      res.status(201).json({ message: "Resell saved", resell: newResell });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: "Upload failed" });
+    }
+  }
+);
+
+
+// GET: All Resell
+app.get("/admin/resell", async (req, res) => {
+  try {
+    const resell = await Resell.find();
+    res.status(200).json(resell);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to fetch Resell" });
+  }
+});
+
+// GET: Filtered Projects by Type (e.g., Commercial)
+app.get("/admin/resell/:type", async (req, res) => {
+  try {
+    const { type } = req.params;
+    const resell = await Resell.find({ type }); // Filter by type
+    res.status(200).json(resell);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to fetch resell by type" });
   }
 });
 
