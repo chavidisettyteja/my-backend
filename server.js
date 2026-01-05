@@ -28,11 +28,13 @@ const app = express();
 
 // Middleware-->
 app.use(cors({
-  // origin: "http://127.0.0.1:3000",
-  origin: ["http://127.0.0.1:3000",
-  "https://telanganalandlordandbuilderdeals.online/"],
+  origin: [
+    "http://127.0.0.1:3000",
+    "https://telanganalandlordandbuilderdeals.online"
+  ],
   methods: ["GET", "POST", "PUT", "DELETE"],
 }));
+
 
 
 
