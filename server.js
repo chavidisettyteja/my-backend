@@ -134,11 +134,10 @@ app.post(
     console.log("Files:", req.files);
 
     try {
-      const {name, area, type, price, location } = req.body;
+      const { area, type, price, location } = req.body;
       const image = req.files?.image?.[0];
       console.log(req.data)
       const newPlot = new Plot({
-        name,
         area,
         location,
         price,
