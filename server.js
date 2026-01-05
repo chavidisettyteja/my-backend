@@ -18,12 +18,21 @@ const app = express();
 //   origin: "https://your-netlify-site.netlify.app"
 // }));
 
-// Middleware
-app.use(express.json());
+// Middleware-->
+// app.use(express.json());
+// app.use(cors({
+//   origin: ["http://localhost:3000",
+//   "https://plotsandproperties.netlify.app"],// Netlify frontend URL
+//   methods: ["GET", "POST", "PUT", "DELETE"],
+// }));
+
+// Middleware-->
 app.use(cors({
-  origin: "https://plotsandproperties.netlify.app", // Netlify frontend URL
+  origin: "http://127.0.0.1:3000",
   methods: ["GET", "POST", "PUT", "DELETE"],
 }));
+
+
 
 app.use(express.json());
 app.use("/uploads", express.static("uploads")); // Serve uploaded files
@@ -123,17 +132,19 @@ app.post(
     console.log("Files:", req.files);
 
     try {
-      const { area, type, price, location } = req.body;
+      const {name, area, type, price, location } = req.body;
       const image = req.files?.image?.[0];
-
+      console.log(req.data)
       const newPlot = new Plot({
+        name,
         area,
-        type,
-        price,
         location,
+        price,
+        type,
+        
+       
         imageUrl: image ? `/uploads/${image.filename}` : null,
       });
-
       await newPlot.save();
       res.status(201).json({ message: "Plot saved", plot: newPlot });
     } catch (err) {
