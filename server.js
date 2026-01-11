@@ -4,11 +4,10 @@ const cors = require("cors");
 require("dotenv").config();
 const multer = require("multer");
 const path = require("path");
-
-const Project = require("./models/Project"); // Make sure you have this
+// const Project = require("./models/Project")
+const Projects = require("./models/Projects"); // Make sure you have this
 const Plot = require("./models/Plots");
 const Resell = require("./models/Resell");
-
 const app = express();
 
 // Middleware
@@ -19,27 +18,26 @@ const app = express();
 // }));
 
 // Middleware-->
-// app.use(express.json());
-// app.use(cors({
-//   origin: ["http://localhost:3000",
-//   "https://plotsandproperties.netlify.app"],// Netlify frontend URL
-//   methods: ["GET", "POST", "PUT", "DELETE"],
-// }));
-
-// Middleware-->
+app.use(express.json());
 app.use(cors({
-  origin: [
-    "http://127.0.0.1:3000",
-    "https://telanganalandlordandbuilderdeals.online"
-  ],
+  origin: ["http://localhost:3000",
+  "https://telanganalandlordandbuilderdeals.online"],// Netlify frontend URL
   methods: ["GET", "POST", "PUT", "DELETE"],
 }));
+
+// // Middleware-->
+// app.use(cors({
+//   origin: [
+//     "http://localhost:3000",
+//   ],
+//   methods: ["GET", "POST", "PUT", "DELETE"],
+// })); 
 
 
 
 
 app.use(express.json());
-app.use("/uploads", express.static("uploads")); // Serve uploaded files
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // MongoDB Connection
 mongoose.connect(process.env.MONGO_URI, {
@@ -83,37 +81,64 @@ app.post(
   "/admin/project",
   upload.fields([
     { name: "image", maxCount: 1 },
+    { name: "bgimage", maxCount: 1 },
     { name: "brochure", maxCount: 1 },
   ]),
   async (req, res) => {
     try {
-      const { name, type, possession, status, location } = req.body;
+      const amenities = JSON.parse(req.body.amenities || "{}");
+      const bhk = JSON.parse(req.body.bhk || "{}");
+
+      const minPrice = req.body.minPrice ? Number(req.body.minPrice) : null;
+      const maxPrice = req.body.maxPrice ? Number(req.body.maxPrice) : null;
+
+      // ✅ FIXED VARIABLE DECLARATION
       const image = req.files?.image?.[0];
+      const bgimage = req.files?.bgimage?.[0];
       const brochure = req.files?.brochure?.[0];
 
-      const newProject = new Project({
-        name,
-        type,
-        possession,
-        status,
-        location,
+      const project = new Projects({
+        name: req.body.name,
+        type: req.body.type,
+        possession: req.body.possession,
+        status: req.body.status,
+        location: req.body.location,
+
+        priceRange: {
+          min: minPrice,
+          max: maxPrice,
+        },
+
+        amenities,
+        bhk,
+
+        // ✅ CORRECT URL STORAGE
         imageUrl: image ? `/uploads/${image.filename}` : null,
+        bgimageUrl: bgimage ? `/uploads/${bgimage.filename}` : null,
         brochureUrl: brochure ? `/uploads/${brochure.filename}` : null,
       });
 
-      await newProject.save();
-      res.status(201).json({ message: "Project saved", project: newProject });
+      await project.save();
+
+      res.status(201).json({
+        message: "Project saved successfully",
+        project,
+      });
     } catch (err) {
-      console.error(err);
-      res.status(500).json({ message: "Upload failed" });
+      console.error("UPLOAD ERROR:", err);
+      res.status(500).json({
+        message: "Upload failed",
+        error: err.message,
+      });
     }
   }
 );
 
+
 // GET: All Projects
 app.get("/admin/project", async (req, res) => {
   try {
-    const projects = await Project.find();
+    const projects = await Projects.find();
     res.status(200).json(projects);
   } catch (err) {
     console.error(err);
@@ -121,6 +146,18 @@ app.get("/admin/project", async (req, res) => {
   }
 });
 
+// GET SINGLE PROJECT
+app.get("/projects/:id", async (req, res) => {
+  try {
+    const project = await Projects.findById(req.params.id);
+    if (!project) {
+      return res.status(404).json({ message: "Project not found" });
+    }
+    res.json(project);
+  } catch (err) {
+    res.status(500).json({ message: "Error fetching project" });
+  }
+});
 
 
 
@@ -136,10 +173,11 @@ app.post(
     console.log("Files:", req.files);
 
     try {
-      const { area, type, price, location } = req.body;
+      const { name,area, type, price, location } = req.body;
       const image = req.files?.image?.[0];
       console.log(req.data)
       const newPlot = new Plot({
+        name,
         area,
         location,
         price,
